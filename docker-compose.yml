@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: httff_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: httff_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - httff_network
+
+  flask-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: httff_flask
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: 1
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/httff_auth
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_SECRET_KEY: jwt-secret-key-change-in-production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+    networks:
+      - httff_network
+
+volumes:
+  postgres_data:
+
+networks:
+  httff_network:
+    driver: bridge
